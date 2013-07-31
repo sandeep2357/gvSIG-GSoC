@@ -23,7 +23,11 @@ To be able to work with this API, one must have:
 <h4>Testing</h4>
 - Create a view with any name in gvSIG main workspace.
 - Open the scripting composer from the gvSIG Tools menu.
-- Create a file named loadingRaster.py and place <a href='https://github.com/sandeep2357/gvSIG-GSoC/wiki'>this code</a> in the file.
+- Create a file named loadingRaster.py and place the following in the file.<br/>
+<pre>from gvsig import *
+from gvsig_raster import *
+def main():
+        layer = loadRasterLayer('path-to-a-raster-file')</pre>
 - Run the script.
 
 <b>Note:</b> If you make any change to gvsig_raster.py file or other files in the lib folder, you need to restart the gvSIG application for the changes to take place.
