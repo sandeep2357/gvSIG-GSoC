@@ -1,10 +1,4 @@
 from gvsig import *
-
-#--------------------------------------------------------------
-# This code will go to the module gvsig_raster.py 
-# Now is here to debug more easily
-# Begin module gvsig_raster
-
 from org.gvsig.fmap.dal import DALLocator
 from org.gvsig.fmap.mapcontext import MapContextLocator
 from org.gvsig.fmap.dal.coverage import RasterLocator
@@ -14,14 +8,19 @@ from org.gvsig.fmap.dal.serverexplorer.filesystem import FilesystemServerExplore
 from org.gvsig.raster.fmap.layers import FLyrRaster
 from java.lang import Byte,Short,Integer,Float,Double
 from java.io import File
+from java.awt.geom import AffineTransform
 
-from  os.path  import splitext
+from os.path import splitext
+
+global sourceFileName
+sourceFileName = None
 
 def loadRasterLayer (rasterfile, mode = "r" ):
-    """ 
-    Load a raster file in a layer
-    """ 
-    if  not  isinstance (rasterfile,File):
+    """
+Load a raster file in a layer
+"""
+    sourceFileName = rasterfile
+    if not isinstance (rasterfile,File):
         rasterfile = File(rasterfile)
 
     name, ext = splitext(rasterfile.getName())
@@ -54,15 +53,12 @@ def loadRasterLayer (rasterfile, mode = "r" ):
 
 
 ## @cond FALSE
-rasterLayerExtensions =  dict ()
+rasterLayerExtensions = dict ()
 
 
-class  RasterLayerExtensions(object):
-    """
-    This class hold aditional properties and operations need to manage the scripting raster layer
-    (query, buffer values ​​....)
-    """
-    def  __init__(self, store=None):
+class RasterLayerExtensions(object):
+    """This class hold aditional properties and operations need to manage the scripting raster layer"""
+    def __init__(self, store=None):
         self.store = store
         self.buffer = None
         self.query = None
@@ -71,7 +67,7 @@ class  RasterLayerExtensions(object):
         self.setElem = None
         self.getElem = None
 
-    def  prepareQuery(self):
+    def prepareQuery(self):
         # # See RasterManager in javadocs for more info
         self.query = RasterLocator.getManager().createQuery();
         # # See RasterQuery in javadocs for more
@@ -81,8 +77,37 @@ class  RasterLayerExtensions(object):
         self.values = None
         self.kernel = None
 
+    def loadStore (rasterfile, mode = "r" ):
+        if not isinstance (rasterfile,File):
+            rasterfile = File(rasterfile)
+
+        name, ext = splitext(rasterfile.getName())
+
+        dalManager = DALLocator.getDataManager()
+
+        if ext.lower() == ".ecw" or ext.lower() == ".jp2" :
+           # FIXME
+           pass
+        elif ext.lower() == ".mrsid":
+           # FIXME
+           pass
+        else:
+           # Create the parameters to open the raster store based in GDAL
+           params = dalManager.createStoreParameters("Gdal Store")
+           params.setFile(rasterfile)
+
+        # Create the raster store
+        dataStore = dalManager.createStore(params)
+        return dataStore
+
     def createBuffer(self):
-        self.buffer = self.store.query(self.getQuery())
+        #print "In createBuffer " + str(sourceFileName)
+        if sourceFileName == None:
+            self.buffer = self.store.query(self.getQuery())
+        else:
+            queryStore = self.loadStore(sourceFileName)
+            self.buffer = queryStore.query(self.getQuery())
+        #print self.buffer.getBandCount()
 
     def createNewBuffer(self,width, height, bandcount, datatype):
         if self.store != None:
@@ -96,6 +121,7 @@ class  RasterLayerExtensions(object):
             datatype = Buffer.TYPE_FLOAT
         # End workaround
 
+        #print "---->>>>Buffer", datatype, width, height, bandcount
         self.buffer = RasterLocator.getManager().createBuffer(
             int(datatype),
             int(width),
@@ -109,35 +135,36 @@ class  RasterLayerExtensions(object):
         def setElemByte(buffer, line, col, band, data):
             buffer.setElem(line, col, band, Byte(data).byteValue())
 
-        def  setElemShort (buffer, line, col, band, date):
-            buffer.setElem(line, col, band, Short(date).shortValue())
+        def setElemShort (buffer, line, col, band, data):
+            buffer.setElem(line, col, band, Short(data).shortValue())
 
-        def  setElemInt(buffer, line, col, band, date):
-            buffer.setElem(line, col, band, Integer(date).intValue())
+        def setElemInt(buffer, line, col, band, data):
+            buffer.setElem(line, col, band, Integer(data).intValue())
 
-        def  setElemFloat(buffer, line, col, band, date):
-            buffer.setElem(line, col, band, Float(date).floatValue())
+        def setElemFloat(buffer, line, col, band, data):
+            buffer.setElem(line, col, band, Float(data).floatValue())
 
-        def  setElemDouble(buffer, line, col, band, date):
-            buffer.setElem(line, col, band, Double(date).doubleValue())
+        def setElemDouble(buffer, line, col, band, data):
+            buffer.setElem(line, col, band, Double(data).doubleValue())
 
         t = buffer.getDataType()
         if t == Buffer.TYPE_BYTE:
-            self.getElem = self.buffer.getElemByte
+            self.getElem = buffer.getElemByte
             self.setElem = setElemByte
         elif t == Buffer.TYPE_SHORT or t == Buffer.TYPE_USHORT:
-            self.getElem = self.buffer.getElemShort
+            self.getElem = buffer.getElemShort
             self.setElem = setElemShort
         elif t == Buffer.TYPE_INT:
-            self.getElem = self.buffer.getElemInt
+            self.getElem = buffer.getElemInt
             self.setElem = setElemInt
         elif t == Buffer.TYPE_FLOAT:
-            self.getElem = self.buffer.getElemFloat
+            self.getElem = buffer.getElemFloat
             self.setElem = setElemFloat
         elif t == Buffer.TYPE_DOUBLE:
-            self.getElem = self.buffer.getElemDouble
+            self.getElem = buffer.getElemDouble
             self.setElem = setElemDouble
-        self.values = [0] * self.buffer.getBandCount()
+        #print buffer.getBandCount()
+        self.values = [0] * buffer.getBandCount()
         self.kernel = [[self.values]*3]*3
 
     def getQuery(self):
@@ -150,6 +177,19 @@ class  RasterLayerExtensions(object):
             self.createBuffer()
             self.prepareBuffer(self.buffer)
         return self.buffer
+
+    def setValue(self, band, line, col, data):
+        t = self.buffer.getDataType()
+        if t == Buffer.TYPE_BYTE:
+           self.buffer.setElem(line, col, band, Byte(data).byteValue())
+        elif t == Buffer.TYPE_SHORT or t == Buffer.TYPE_USHORT:
+            self.buffer.setElem(line, col, band, Short(data).shortValue())
+        elif t == Buffer.TYPE_INT:
+            self.buffer.setElem(line, col, band, Integer(data).intValue())
+        elif t == Buffer.TYPE_FLOAT:
+            self.buffer.setElem(line, col, band, Float(data).floatValue())
+        elif t == Buffer.TYPE_DOUBLE:
+            self.buffer.setElem(line, col, band, Double(data).doubleValue())
 
     def getValue(self, band, row, column):
         if self.getElem == None:
@@ -169,15 +209,17 @@ class  RasterLayerExtensions(object):
         for b in xrange(self.buffer.getBandCount()):
             self.setElem(self.buffer, row, column, b, values[b])
 
-    def  saveBuffer(self,filename):
+    def saveBuffer(self,filename):
         manager = DALLocator.getDataManager ()
         eparams = manager.createServerExplorerParameters(FilesystemServerExplorer.NAME)
-        eparams.setDynValue("initialpath","/tmp")
+        eparams.setDynValue("initialpath","C:\\Users\\Sandeep\\Desktop")
         serverExplorer = manager.openServerExplorer(eparams.getExplorerName(),eparams)
 
         sparams = serverExplorer.getAddParameters("Gdal Store")
-        sparams.setDestination("C:\Users\Sandeep\Desktop","Costa1-B.tif")
+        sparams.setDestination("C:\\Users\\Sandeep\\Desktop",filename)
         sparams.setBuffer(self.buffer)
+        #at = AffineTransform(1, 0, 0, -1, 0, 0)
+        #sparams.setAffineTransform(at);
         print sparams.getDataStoreName()
 
         serverExplorer.add("Gdal Store", sparams, True)
@@ -199,10 +241,10 @@ class RasterLayer(FLyrRaster):
     ## @cond FALSE
     def getExtensions(self):
         """This is a internal method, don't use it.
-        """
+"""
         global rasterLayerExtensions
         extensions = rasterLayerExtensions.get(self.hashCode(), None)
-        if extensions ==  None:
+        if extensions == None:
             extensions = RasterLayerExtensions(self.getDataStore())
             rasterLayerExtensions[self.hashCode()] = extensions
         return extensions
@@ -278,12 +320,18 @@ class RasterLayer(FLyrRaster):
     # @param operation FIXME
     #
     def walk(self, operation):
-        extension =  self.getExtensions()
+        extension = self.getExtensions()
         store = self.getDataStore()
+        sourceExtension = RasterLayerExtensions()
+        sourceExtension.createNewBuffer(store.getWidth(), store.getHeight(), store.getBandCount(), Buffer.TYPE_INT)
+        
         for band in xrange(store.getBandCount()):
             for line in xrange(store.getHeight()):
                 for column in xrange(store.getWidth()):
-                    operation(extension.getBandValues(line, column))
+                    values=operation(extension.getBandValues(line, column))
+                    sourceExtension.setBandValues(line, column, values)
+
+        sourceExtension.saveBuffer(sourceFileName)
 
     @staticmethod
     ##
@@ -293,31 +341,51 @@ class RasterLayer(FLyrRaster):
     def walkKernel(self, operation):
         extension = self.getExtensions()
         store = self.getDataStore()
+        sourceExtension = RasterLayerExtensions()
+        sourceExtension.createNewBuffer(store.getWidth(), store.getHeight(), store.getBandCount(), Buffer.TYPE_INT)
+        
+        k=0
+        l=0
+        values = [0 for count in xrange(store.getBandCount())]
+        values = [[values for count in xrange(3)] for count in xrange(3)]
+        outValues = list()
         for band in xrange(store.getBandCount()):
-            for line in xrange(store.getHeight()):
-                for column in xrange(store.getWidth()):
-                    values = list()
-                    for k in xrange(line-1, line+1):
-                        for l in xrange(column-1, column+1):
-                            values.append(extension.getBandValues(k,l))
-                    operation(values)
+            for line in xrange(1,store.getHeight()-1):
+                for column in xrange(1,store.getWidth()-1):
+                    
+                    i=0
+                    for k in xrange(line-1,line+2):
+                        j=0
+                        for l in xrange(column-1,column+2):
+                            #if k>=0 and l>=0 and k<store.getHeight() and l<store.getWidth():
+                            values[i][j]=extension.getBandValues(k,l)
+                            j=j+1
+                        i=i+1
+                    outValues = operation(values)
+                    targetExtension.setBandValues(line, column, outValues)
+
+        sourceExtension.saveBuffer(sourceFilename)
 
     @staticmethod
     ##
     #
     # DOCUMENT ME!!
     #
-    def  filter(self, filter1, targetfilename, targetdatatype=None, targetbandcount=None):
+    def filter(self, filter1, targetfilename, targetdatatype=None, targetbandcount=None):
         extension = self.getExtensions()
         store = self.getDataStore()
         targetExtension = RasterLayerExtensions()
-        targetExtension.createNewBuffer(store.getWidth(),store.getHeight(),targetbandcount,targetdatatype)
+        targetExtension.createNewBuffer(store.getWidth(), store.getHeight(), targetbandcount, targetdatatype)
 
         for band in xrange(store.getBandCount()):
             for line in xrange(store.getHeight()):
                 for column in xrange(store.getWidth()):
+                    #data = extension.getValue(band, line, column)
+                    #data = filter1(data)
+                    #targetExtension.setValue(band, line, column, data)
                     values = filter1(extension.getBandValues(line,column))
                     targetExtension.setBandValues(line, column, values)
+
         targetExtension.saveBuffer(targetfilename)
 
     @staticmethod
@@ -325,24 +393,119 @@ class RasterLayer(FLyrRaster):
     #
     # DOCUMENT ME!!
     #
-    def filterKernel(self, filter1, targetfilename, targetdatatype):
-        pass
+    def filterKernel(self, filter1, targetfilename, targetdatatype, targetbandcount):
+        extension = self.getExtensions()
+        store = self.getDataStore()
+        targetExtension = RasterLayerExtensions()
+        targetExtension.createNewBuffer(store.getWidth(), store.getHeight(), targetbandcount, targetdatatype)
 
+        k=0
+        l=0
+        values = [0 for count in xrange(store.getBandCount())]
+        values = [[values for count in xrange(3)] for count in xrange(3)]
+        outValues = list()
+        for band in xrange(store.getBandCount()):
+            for line in xrange(1,store.getHeight()-1):
+                for column in xrange(1,store.getWidth()-1):
+                    
+                    i=0
+                    for k in xrange(line-1,line+2):
+                        j=0
+                        for l in xrange(column-1,column+2):
+                            #if k>=0 and l>=0 and k<store.getHeight() and l<store.getWidth():
+                            values[i][j]=extension.getBandValues(k,l)
+                            j=j+1
+                        i=i+1
+                    outValues = filter1(values)
+                    targetExtension.setBandValues(line, column, outValues)
+
+        targetExtension.saveBuffer(targetfilename)
+                    
     @staticmethod
     ##
     #
     # DOCUMENT ME!!
     #
-    def operation(self, operation, layer2, targetfilename, targettype):
-        pass
+    def operation(self, operation, layer2, targetfilename, targetdatatype):
+        layer1Extension = self.getExtensions()
+        layer2Extension = layer2.getExtensions()
+
+        layer1Store = self.getDataStore()
+        layer2Store = layer2.getDataStore()
+
+        bandCount = layer1Store.getBandCount()
+        layerWidth = layer1Store.getWidth()
+        layerHeight = layer1Store.getHeight()
+        targetExtension = RasterLayerExtensions()
+        targetExtension.createNewBuffer(layerWidth, layerHeight, bandCount, targetdatatype)
+
+        for band in xrange(bandCount):
+            for line in xrange(layerHeight):
+                for column in xrange(layerWidth):
+                    layer1Values = layer1Extension.getBandValues(line, column)
+                    layer2Values = layer2Extension.getBandValues(line, column)
+                    resultValues = operation(layer1Values, layer2Values)
+                    targetExtension.setBandValues(line, column, resultValues)
+
+        targetExtension.saveBuffer(targetfilename)
 
     @staticmethod
     ##
     #
     # DOCUMENT ME !!
     #
-    def operationKernel(self, operation, layer2, targetfilename, targettype):
-        pass
+    def operationKernel(self, operation, layer2, targetfilename, targetdatatype):
+        layer1Extension = self.getExtensions()
+        layer2Extension = self.getExtensions()
+
+        layer1Store = self.getDataStore()
+        layer2Store = layer2.getDataStore()
+
+        bandCount = layer1Store.getBandCount()
+        layerWidth = layer1Store.getWidth()
+        layerHeight = layer1Store.getHeight()
+        targetExtension = RasterLayerExtensions()
+        targetExtension.createNewBuffer(layerWidth, layerHeight, bandCount, targetdatatype)
+
+        k=0
+        l=0
+        values1 = [0 for count in xrange(bandCount)]
+        values1 = [[values1 for count in xrange(3)] for count in xrange(3)]
+        values2 = [0 for count in xrange(bandCount)]
+        values2 = [[values2 for count in xrange(3)] for count in xrange(3)]
+        #values1 = list()
+        #values2 = list()
+        tempValues = list()
+        outValues = list()
+        #print bandCount
+        for band in xrange(bandCount):
+            for line in xrange(1,layerHeight-1):
+                for column in xrange(1,layerWidth-1):
+
+                    i=0
+                    for k in xrange(line-1,line+2):
+                        j=0
+                        for l in xrange(column-1,column+2):
+                            #if k>=0 and l>=0 and k<store.getHeight() and l<store.getWidth():
+                            tempValues=layer1Extension.getBandValues(k,l)
+                            values1[i][j]=tempValues
+                            #print i, j, values1[i][j]
+                            #print values1
+                            values2[i][j]=layer2Extension.getBandValues(k,l)
+                            j=j+1
+                        i=i+1
+
+                    outValues = operation(values1, values2)
+                    i=0
+                    for k in xrange(line-1,line+2):
+                        j=0
+                        for l in xrange(column-1,column+2):
+                            targetExtension.setBandValues(k,l, outValues[3*i+j])
+                            j=j+1
+                        i=i+1
+
+        targetExtension.saveBuffer(targetfilename)
+        
 
 #
 # Inject new methods in the class FLyrRaster
@@ -355,27 +518,7 @@ FLyrRaster.getDataType = RasterLayer.getDataType
 FLyrRaster.getData = RasterLayer.getData
 FLyrRaster.walk = RasterLayer.walk
 FLyrRaster.walkKernel = RasterLayer.walkKernel
-FLyrRaster.filter =  RasterLayer.filter 
+FLyrRaster.filter = RasterLayer.filter
 FLyrRaster.filterKernel = RasterLayer.filterKernel
 FLyrRaster.operation = RasterLayer.operation
 FLyrRaster.operationKernel = RasterLayer.operationKernel
-
-# 
-# end module gvsig_raster.py 
-# ------------------------------------------ -------------------
-
-
-#
-# Here, code to test the new API.
-# 
-
-"""def incrShine(values):
-    x = list()
-    for value in values:
-        x.append(value+20)
-    return x
-
-def main():
-    layer = loadRasterLayer("/tmp/Costa1.tif")
-    layer.filter(incrShine, "/ tmp/Costa1-B.tif" )
-"""
