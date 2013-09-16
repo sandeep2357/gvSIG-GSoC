@@ -406,7 +406,8 @@ class RasterLayer(FLyrRaster):
         extension = self.getExtensions()
         store = self.getDataStore()
         targetExtension = RasterLayerExtensions()
-        targetExtension.createNewBuffer(store.getWidth(), store.getHeight(), store.getBandCount(), store.getDataType())
+        #targetExtension.createNewBuffer(store.getWidth(), store.getHeight(), store.getBandCount(), store.getDataType())
+        targetExtension.createNewBuffer(store.getWidth(), store.getHeight(), targetbandcount, targetdatatype)
 
         for band in xrange(store.getBandCount()):
             for line in xrange(store.getHeight()):
@@ -441,7 +442,8 @@ class RasterLayer(FLyrRaster):
         extension = self.getExtensions()
         store = self.getDataStore()
         targetExtension = RasterLayerExtensions()
-        targetExtension.createNewBuffer(store.getWidth(), store.getHeight(), store.getBandCount(), store.getDataType())
+        #targetExtension.createNewBuffer(store.getWidth(), store.getHeight(), store.getBandCount(), store.getDataType())
+        targetExtension.createNewBuffer(store.getWidth(), store.getHeight(), targetbandcount, targetdatatype)
 
         k=0
         l=0
