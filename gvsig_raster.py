@@ -16,9 +16,7 @@ global sourceFileName
 sourceFileName = None
 
 def loadRasterLayer (rasterfile, mode = "r" ):
-    """
-Load a raster file in a layer
-"""
+    ## Load a Raster file in a Layer
     sourceFileName = rasterfile
     if not isinstance (rasterfile,File):
         rasterfile = File(rasterfile)
@@ -57,7 +55,7 @@ rasterLayerExtensions = dict ()
 
 
 class RasterLayerExtensions(object):
-    """This class hold aditional properties and operations need to manage the scripting raster layer"""
+    ##This class hold aditional properties and operations need to manage the scripting raster layer
     def __init__(self, store=None):
         self.store = store
         self.buffer = None
@@ -68,9 +66,9 @@ class RasterLayerExtensions(object):
         self.getElem = None
 
     def prepareQuery(self):
-        # # See RasterManager in javadocs for more info
+        ## See RasterManager in javadocs for more info
         self.query = RasterLocator.getManager().createQuery();
-        # # See RasterQuery in javadocs for more
+        ## See RasterQuery in javadocs for more
         self.query.setAllDrawableBands()
         self.query.setAreaOfInterest()
         self.buffer = None
@@ -212,11 +210,11 @@ class RasterLayerExtensions(object):
     def saveBuffer(self,filename):
         manager = DALLocator.getDataManager ()
         eparams = manager.createServerExplorerParameters(FilesystemServerExplorer.NAME)
-        eparams.setDynValue("initialpath","C:\\Users\\Sandeep\\Desktop")
+        eparams.setDynValue("initialpath",os.path.dirname(filename))
         serverExplorer = manager.openServerExplorer(eparams.getExplorerName(),eparams)
 
         sparams = serverExplorer.getAddParameters("Gdal Store")
-        sparams.setDestination("C:\\Users\\Sandeep\\Desktop",filename)
+        sparams.setDestination(os.path.dirname(filename),filename)
         sparams.setBuffer(self.buffer)
         #at = AffineTransform(1, 0, 0, -1, 0, 0)
         #sparams.setAffineTransform(at);
@@ -240,8 +238,8 @@ class RasterLayer(FLyrRaster):
     @staticmethod
     ## @cond FALSE
     def getExtensions(self):
-        """This is a internal method, don't use it.
-"""
+        ## This is a internal method, don't use it.
+
         global rasterLayerExtensions
         extensions = rasterLayerExtensions.get(self.hashCode(), None)
         if extensions == None:
@@ -255,7 +253,9 @@ class RasterLayer(FLyrRaster):
     #
     # Return the number of bands of the raster
     #
-    # @return the number of bands of the raster
+    # @param self The raster layer object
+    #
+    # @return the number of bands of the raster layer
     #
     def getBandsCount(self):
         return self.getDataStore().getBandCount()
@@ -263,7 +263,9 @@ class RasterLayer(FLyrRaster):
     @staticmethod
     ##
     #
-    # Return the width in points of the raster
+    # Return the width in points/pixels of the raster
+    #
+    # @param self The raster layer object
     #
     # @return the width of the raster
     #
@@ -273,7 +275,9 @@ class RasterLayer(FLyrRaster):
     @staticmethod
     ##
     #
-    # Return the height in points of the raster
+    # Return the height in points/pixels of the raster
+    #
+    # @param self The raster layer object
     #
     # @return the height of the raster
     def getHeight(self):
@@ -283,27 +287,33 @@ class RasterLayer(FLyrRaster):
     ##
     #
     # Return the data type of the raster
+    # TYPE_BYTE = Byte datatype
+    # TYPE_USHORT  = Unsigned Short datatype
+    # TYPE_SHORT = Signed Short datatype
+    # TYPE_INT = Integer datatype
+    # TYPE_FLOAT = Float Datatype
+    # TYPE_DOUBLE = Double Datatype
     #
-    # FIXME: Add the documentation about the datatypes
+    # @param self The raster layer object
     #
-    # @return FIXME
+    # @return the datatype of the raster layer
     def getDataType(self):
         return self.getDataStore().getDataType()
 
     @staticmethod
     ##
     #
-    # Return the value of a point of a band for a row/coulmn of
-    # the raster.
+    # Return the value of a point of a "band" from "row" and "coulmn" of
+    # the Raster.
     #
     # This method use with care, it has a strong overhead. Use instead
     # the method "walk" to go over the raster.
     #
-    # @param band band from to retrieve the value
-    # @param row FIXME
-    # @param column FIXME
+    # @param band band from which the value should be retrieved
+    # @param row row in the raster from which the value should be retrieved
+    # @param column column in the raster from which the value should be retrieved
     #
-    # @return FIXME
+    # @return the value of a point/pixel of a "band" from "row" and "column" of the Raster
     #
     def getData(self, band, row, column):
         return self.getExtensions().getValue(band, row, column)
@@ -317,32 +327,42 @@ class RasterLayer(FLyrRaster):
     #
     # This method don't return any value
     #
-    # @param operation FIXME
+    # @param self pointer to the Layer object
+    # @param operation any operation which operates on the raster point-by-point
+    #
+    # @return None
     #
     def walk(self, operation):
         extension = self.getExtensions()
         store = self.getDataStore()
         sourceExtension = RasterLayerExtensions()
-        sourceExtension.createNewBuffer(store.getWidth(), store.getHeight(), store.getBandCount(), Buffer.TYPE_INT)
+        sourceExtension.createNewBuffer(store.getWidth(), store.getHeight(), store.getBandCount(), store.getDataType())
         
         for band in xrange(store.getBandCount()):
             for line in xrange(store.getHeight()):
                 for column in xrange(store.getWidth()):
-                    values=operation(extension.getBandValues(line, column))
-                    sourceExtension.setBandValues(line, column, values)
-
-        sourceExtension.saveBuffer(sourceFileName)
+                    operation(extension.getBandValues(line, column))
+                    
 
     @staticmethod
     ##
     #
-    # DOCUMENT ME !!
+    # Go over the raster and for each point, taking the neighbour points
+    # as a kernel(3x3) call to the function "operation" and pass as argument a
+    # tuple with the values of all the points in the kernel for each band.
+    #
+    # This method don't return any value
+    #
+    # @param self pointer to the Layer object
+    # @param operation any operation which operates on the raster by a kernel(3x3).
+    #
+    # @return None
     #
     def walkKernel(self, operation):
         extension = self.getExtensions()
         store = self.getDataStore()
         sourceExtension = RasterLayerExtensions()
-        sourceExtension.createNewBuffer(store.getWidth(), store.getHeight(), store.getBandCount(), Buffer.TYPE_INT)
+        sourceExtension.createNewBuffer(store.getWidth(), store.getHeight(), store.getBandCount(), store.getDataType())
         
         k=0
         l=0
@@ -361,21 +381,32 @@ class RasterLayer(FLyrRaster):
                             values[i][j]=extension.getBandValues(k,l)
                             j=j+1
                         i=i+1
-                    outValues = operation(values)
-                    targetExtension.setBandValues(line, column, outValues)
-
-        sourceExtension.saveBuffer(sourceFilename)
+                    operation(values)
+                    
 
     @staticmethod
     ##
     #
-    # DOCUMENT ME!!
+    # Go over the raster and for each point call to the function "filter1"
+    # and pass as argument a tuple with the values of all the points in the
+    # kernel for each band.
+    #
+    # The function "filter1" must be such that it takes a tuple, modifies its value
+    # and returns a new tuple.
+    #
+    # This method saves the newly created(filter applied) layer to "targetfilename"
+    #
+    # @param self pointer to the Layer object
+    # @param filter1 any filter which modifies the raster layer point-by-point
+    # @param targetfilename filename to which the output layer should be saved
+    #
+    # @return saves the created layer to "targetfilename" in the current directory
     #
     def filter(self, filter1, targetfilename, targetdatatype=None, targetbandcount=None):
         extension = self.getExtensions()
         store = self.getDataStore()
         targetExtension = RasterLayerExtensions()
-        targetExtension.createNewBuffer(store.getWidth(), store.getHeight(), targetbandcount, targetdatatype)
+        targetExtension.createNewBuffer(store.getWidth(), store.getHeight(), store.getBandCount(), store.getDataType())
 
         for band in xrange(store.getBandCount()):
             for line in xrange(store.getHeight()):
@@ -391,13 +422,26 @@ class RasterLayer(FLyrRaster):
     @staticmethod
     ##
     #
-    # DOCUMENT ME!!
+    # Go over the raster and for each point, taking the neighbour points
+    # as a kernel(3x3) call to the function "filter1" and pass as argument
+    # a tuple with the values of all the points in the kernel for each band.
     #
-    def filterKernel(self, filter1, targetfilename, targetdatatype, targetbandcount):
+    # The function "filter1" must be such that it takes a tuple of multi-dimension,
+    # modifies its value and returns a new tuple having dimensions same as input.
+    #
+    # This method saves the newly created(filter applied) layer to "targetfilename"
+    #
+    # @param self pointer to the Layer object
+    # @param filter1 any filter which modifies the raster layer using a kernel(3x3).
+    # @param targetfilename filename to which the output layer should be saved
+    #
+    # @return saves the created layer to "targetfilename" in the current directory
+    #
+    def filterKernel(self, filter1, targetfilename, targetdatatype=None, targetbandcount=None):
         extension = self.getExtensions()
         store = self.getDataStore()
         targetExtension = RasterLayerExtensions()
-        targetExtension.createNewBuffer(store.getWidth(), store.getHeight(), targetbandcount, targetdatatype)
+        targetExtension.createNewBuffer(store.getWidth(), store.getHeight(), store.getBandCount(), store.getDataType())
 
         k=0
         l=0
@@ -424,9 +468,24 @@ class RasterLayer(FLyrRaster):
     @staticmethod
     ##
     #
-    # DOCUMENT ME!!
+    # Go over the raster layer and for each point call to the function "operation" and
+    # pass as arguments two tuples (One corresponding to the first layer at that point,
+    # the other corresponding to the second layer at the same point) with the values of
+    # each point for each band.
     #
-    def operation(self, operation, layer2, targetfilename, targetdatatype):
+    # The function "operation" must be such that it takes two tuples as input, performs
+    # operations involving both of them and returns a new tuple.
+    #
+    # This method saves the newly created(from the two rasters) layer to "targetfilename"
+    #
+    # @param self pointer to the Layer object
+    # @param operation any operation which operates on both the raster layers at a respective point/pixel.
+    # @param layer2 the layer which forms the second input to the "operation" function.
+    # @param targetfilename filename to which the output layer should be saved
+    #
+    # @return saves the created layer to "targetfilename" in the current directory
+    #
+    def operation(self, operation, layer2, targetfilename, targetdatatype=None):
         layer1Extension = self.getExtensions()
         layer2Extension = layer2.getExtensions()
 
@@ -437,7 +496,7 @@ class RasterLayer(FLyrRaster):
         layerWidth = layer1Store.getWidth()
         layerHeight = layer1Store.getHeight()
         targetExtension = RasterLayerExtensions()
-        targetExtension.createNewBuffer(layerWidth, layerHeight, bandCount, targetdatatype)
+        targetExtension.createNewBuffer(layerWidth, layerHeight, bandCount, layer1Store.getDataType())
 
         for band in xrange(bandCount):
             for line in xrange(layerHeight):
@@ -452,9 +511,26 @@ class RasterLayer(FLyrRaster):
     @staticmethod
     ##
     #
-    # DOCUMENT ME !!
+    # Go over the raster layer and for each point, taking the neighbour points as a
+    # kernel(3x3) call to the function "operation" and pass as arguments two tuples
+    # (One corresponding to the first layer at that point, the other corresponding
+    # to the second layer at the same point) with the values of all the points of the
+    # kernel for each band.
     #
-    def operationKernel(self, operation, layer2, targetfilename, targetdatatype):
+    # The function "operation" must be such that it takes two tuples of multiple
+    # dimensions as input, performs operations involving both of them and returns a
+    # new tuple having dimensions same as input tuples.
+    #
+    # This method saves the newly created(from the two rasters) layer to "targetfilename"
+    #
+    # @param self pointer to the Layer object
+    # @param operation any operation which operates on both the raster layers at a respective point/pixel but involving kernel(3x3)[neighbour points].
+    # @param layer2 the layer which forms the second input to the "operation" function.
+    # @param targetfilename filename to which the output layer should be saved
+    #
+    # @return saves the created layer to "targetfilename" in the current directory
+    #
+    def operationKernel(self, operation, layer2, targetfilename, targetdatatype=None):
         layer1Extension = self.getExtensions()
         layer2Extension = self.getExtensions()
 
@@ -465,19 +541,19 @@ class RasterLayer(FLyrRaster):
         layerWidth = layer1Store.getWidth()
         layerHeight = layer1Store.getHeight()
         targetExtension = RasterLayerExtensions()
-        targetExtension.createNewBuffer(layerWidth, layerHeight, bandCount, targetdatatype)
+        targetExtension.createNewBuffer(layerWidth, layerHeight, bandCount, layer1Store.getDataType())
 
         k=0
         l=0
-        values1 = [0 for count in xrange(bandCount)]
-        values1 = [[values1 for count in xrange(3)] for count in xrange(3)]
-        values2 = [0 for count in xrange(bandCount)]
-        values2 = [[values2 for count in xrange(3)] for count in xrange(3)]
+        values1 = [[[None for count in range(bandCount)] for count in range(3)] for count in range(3)]
+        #values1 = [[values1 for count in xrange(3)] 
+        values2 = [[[None for count in range(bandCount)] for count in range(3)] for count in range(3)]
+        #values2 = [[values2 for count in xrange(3)] for count in xrange(3)]
         #values1 = list()
         #values2 = list()
         tempValues = list()
         outValues = list()
-        #print bandCount
+        print bandCount
         for band in xrange(bandCount):
             for line in xrange(1,layerHeight-1):
                 for column in xrange(1,layerWidth-1):
@@ -489,8 +565,8 @@ class RasterLayer(FLyrRaster):
                             #if k>=0 and l>=0 and k<store.getHeight() and l<store.getWidth():
                             tempValues=layer1Extension.getBandValues(k,l)
                             values1[i][j]=tempValues
-                            #print i, j, values1[i][j]
-                            #print values1
+                            print i, j, values1[i][j]
+                            print values1
                             values2[i][j]=layer2Extension.getBandValues(k,l)
                             j=j+1
                         i=i+1
