@@ -9,15 +9,17 @@ from org.gvsig.raster.fmap.layers import FLyrRaster
 from java.lang import Byte,Short,Integer,Float,Double
 from java.io import File
 from java.awt.geom import AffineTransform
+import os
 
 from os.path import splitext
 
 global sourceFileName
-sourceFileName = None
+sourceFileName = []
+sourceFileName.append(None)
 
 def loadRasterLayer (rasterfile, mode = "r" ):
     ## Load a Raster file in a Layer
-    sourceFileName = rasterfile
+    sourceFileName[0]=rasterfile
     if not isinstance (rasterfile,File):
         rasterfile = File(rasterfile)
 
@@ -75,8 +77,8 @@ class RasterLayerExtensions(object):
         self.values = None
         self.kernel = None
 
-    def loadStore (rasterfile, mode = "r" ):
-        if not isinstance (rasterfile,File):
+    def loadStore (self,rasterfile, mode = "r" ):
+        if not isinstance(rasterfile,File):
             rasterfile = File(rasterfile)
 
         name, ext = splitext(rasterfile.getName())
@@ -99,11 +101,10 @@ class RasterLayerExtensions(object):
         return dataStore
 
     def createBuffer(self):
-        #print "In createBuffer " + str(sourceFileName)
-        if sourceFileName == None:
+        if sourceFileName[0] == None:
             self.buffer = self.store.query(self.getQuery())
         else:
-            queryStore = self.loadStore(sourceFileName)
+            queryStore = self.loadStore(sourceFileName[0])
             self.buffer = queryStore.query(self.getQuery())
         #print self.buffer.getBandCount()
 
@@ -210,15 +211,16 @@ class RasterLayerExtensions(object):
     def saveBuffer(self,filename):
         manager = DALLocator.getDataManager ()
         eparams = manager.createServerExplorerParameters(FilesystemServerExplorer.NAME)
-        eparams.setDynValue("initialpath",os.path.dirname(filename))
+        eparams.setDynValue("initialpath",os.path.dirname(sourceFileName[0]))
+        #eparams.setDynValue("initialpath","C:\\Users\\Sandeep\\Desktop")
         serverExplorer = manager.openServerExplorer(eparams.getExplorerName(),eparams)
 
         sparams = serverExplorer.getAddParameters("Gdal Store")
-        sparams.setDestination(os.path.dirname(filename),filename)
+        sparams.setDestination(os.path.dirname(sourceFileName[0]),filename)
+        #sparams.setDestination("C:\\Users\\Sandeep\\Desktop",filename)
         sparams.setBuffer(self.buffer)
         #at = AffineTransform(1, 0, 0, -1, 0, 0)
         #sparams.setAffineTransform(at);
-        print sparams.getDataStoreName()
 
         serverExplorer.add("Gdal Store", sparams, True)
 
