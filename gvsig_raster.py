@@ -379,7 +379,6 @@ class RasterLayer(FLyrRaster):
                     for k in xrange(line-1,line+2):
                         j=0
                         for l in xrange(column-1,column+2):
-                            #if k>=0 and l>=0 and k<store.getHeight() and l<store.getWidth():
                             values[i][j]=extension.getBandValues(k,l)
                             j=j+1
                         i=i+1
@@ -414,9 +413,6 @@ class RasterLayer(FLyrRaster):
         for band in xrange(store.getBandCount()):
             for line in xrange(store.getHeight()):
                 for column in xrange(store.getWidth()):
-                    #data = extension.getValue(band, line, column)
-                    #data = filter1(data)
-                    #targetExtension.setValue(band, line, column, data)
                     values = filter1(extension.getBandValues(line,column))
                     targetExtension.setBandValues(line, column, values)
 
@@ -460,7 +456,6 @@ class RasterLayer(FLyrRaster):
                     for k in xrange(line-1,line+2):
                         j=0
                         for l in xrange(column-1,column+2):
-                            #if k>=0 and l>=0 and k<store.getHeight() and l<store.getWidth():
                             values[i][j]=extension.getBandValues(k,l)
                             j=j+1
                         i=i+1
@@ -553,14 +548,9 @@ class RasterLayer(FLyrRaster):
         k=0
         l=0
         values1 = [[[None for count in range(bandCount)] for count in range(3)] for count in range(3)]
-        #values1 = [[values1 for count in xrange(3)] 
         values2 = [[[None for count in range(bandCount)] for count in range(3)] for count in range(3)]
-        #values2 = [[values2 for count in xrange(3)] for count in xrange(3)]
-        #values1 = list()
-        #values2 = list()
         tempValues = list()
         outValues = list()
-        print bandCount
         for band in xrange(bandCount):
             for line in xrange(1,layerHeight-1):
                 for column in xrange(1,layerWidth-1):
@@ -569,11 +559,8 @@ class RasterLayer(FLyrRaster):
                     for k in xrange(line-1,line+2):
                         j=0
                         for l in xrange(column-1,column+2):
-                            #if k>=0 and l>=0 and k<store.getHeight() and l<store.getWidth():
                             tempValues=layer1Extension.getBandValues(k,l)
                             values1[i][j]=tempValues
-                            print i, j, values1[i][j]
-                            print values1
                             values2[i][j]=layer2Extension.getBandValues(k,l)
                             j=j+1
                         i=i+1
