@@ -212,12 +212,10 @@ class RasterLayerExtensions(object):
         manager = DALLocator.getDataManager ()
         eparams = manager.createServerExplorerParameters(FilesystemServerExplorer.NAME)
         eparams.setDynValue("initialpath",os.path.dirname(sourceFileName[0]))
-        #eparams.setDynValue("initialpath","C:\\Users\\Sandeep\\Desktop")
         serverExplorer = manager.openServerExplorer(eparams.getExplorerName(),eparams)
 
         sparams = serverExplorer.getAddParameters("Gdal Store")
         sparams.setDestination(os.path.dirname(sourceFileName[0]),filename)
-        #sparams.setDestination("C:\\Users\\Sandeep\\Desktop",filename)
         sparams.setBuffer(self.buffer)
         #at = AffineTransform(1, 0, 0, -1, 0, 0)
         #sparams.setAffineTransform(at);
