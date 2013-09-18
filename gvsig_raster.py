@@ -163,8 +163,8 @@ class RasterLayerExtensions(object):
             self.getElem = buffer.getElemDouble
             self.setElem = setElemDouble
         #print buffer.getBandCount()
-        self.values = [0] * buffer.getBandCount()
-        self.kernel = [[self.values]*3]*3
+        self.values = [0 for count in range(buffer.getBandCount())]
+        self.kernel = [[self.values for count in range(3)] for count in range(3)]
 
     def getQuery(self):
         if self.query == None:
@@ -547,7 +547,6 @@ class RasterLayer(FLyrRaster):
         l=0
         values1 = [[[None for count in range(bandCount)] for count in range(3)] for count in range(3)]
         values2 = [[[None for count in range(bandCount)] for count in range(3)] for count in range(3)]
-        tempValues = list()
         outValues = list()
         for band in xrange(bandCount):
             for line in xrange(1,layerHeight-1):
@@ -557,8 +556,9 @@ class RasterLayer(FLyrRaster):
                     for k in xrange(line-1,line+2):
                         j=0
                         for l in xrange(column-1,column+2):
-                            tempValues=layer1Extension.getBandValues(k,l)
-                            values1[i][j]=tempValues
+                            values1[i][j]=layer1Extension.getBandValues(k,l)
+                            #print i,j,values1[i][j]
+                            #print values1
                             values2[i][j]=layer2Extension.getBandValues(k,l)
                             j=j+1
                         i=i+1
