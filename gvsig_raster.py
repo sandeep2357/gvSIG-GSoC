@@ -17,6 +17,14 @@ global sourceFileName
 sourceFileName = []
 sourceFileName.append(None)
 
+
+##
+#
+# Loads the raster layer given the filepath
+#
+# @params rasterfile the filename of the input layer
+#
+# @returns None loads the raster layer 
 def loadRasterLayer (rasterfile, mode = "r" ):
     ## Load a Raster file in a Layer
     sourceFileName[0]=rasterfile
@@ -287,11 +295,17 @@ class RasterLayer(FLyrRaster):
     ##
     #
     # Return the data type of the raster
+    #
     # TYPE_BYTE = Byte datatype
+    #
     # TYPE_USHORT  = Unsigned Short datatype
+    #
     # TYPE_SHORT = Signed Short datatype
+    #
     # TYPE_INT = Integer datatype
+    #
     # TYPE_FLOAT = Float Datatype
+    #
     # TYPE_DOUBLE = Double Datatype
     #
     # @param self The raster layer object
