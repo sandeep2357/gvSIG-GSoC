@@ -218,7 +218,9 @@ Static Public Attributes</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">self</td><td>pointer to the Layer object </td></tr>
     <tr><td class="paramname">filter1</td><td>any filter which modifies the raster layer point-by-point </td></tr>
-    <tr><td class="paramname">targetfilename</td><td>filename to which the output layer should be saved</td></tr>
+    <tr><td class="paramname">targetfilename</td><td>filename to which the output layer should be saved </td></tr>
+    <tr><td class="paramname">targetdatatype</td><td>datatype of which the output layer to be saved (use only TYPE_INT,TYPE_BYTE or TYPE_SHORT as of now) </td></tr>
+    <tr><td class="paramname">targetbandcount</td><td>number of bands in the output layer</td></tr>
   </table>
   </dd>
 </dl>
@@ -283,7 +285,9 @@ Static Public Attributes</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">self</td><td>pointer to the Layer object </td></tr>
     <tr><td class="paramname">filter1</td><td>any filter which modifies the raster layer using a kernel(3x3). </td></tr>
-    <tr><td class="paramname">targetfilename</td><td>filename to which the output layer should be saved</td></tr>
+    <tr><td class="paramname">targetfilename</td><td>filename to which the output layer should be saved </td></tr>
+    <tr><td class="paramname">targetdatatype</td><td>datatype of which the output layer to be saved (use only TYPE_INT,TYPE_BYTE or TYPE_SHORT as of now) </td></tr>
+    <tr><td class="paramname">targetbandcount</td><td>number of bands in the output layer</td></tr>
   </table>
   </dd>
 </dl>
@@ -539,7 +543,8 @@ Static Public Attributes</h2></td></tr>
     <tr><td class="paramname">self</td><td>pointer to the Layer object </td></tr>
     <tr><td class="paramname">operation</td><td>any operation which operates on both the raster layers at a respective point/pixel. </td></tr>
     <tr><td class="paramname">layer2</td><td>the layer which forms the second input to the "operation" function. </td></tr>
-    <tr><td class="paramname">targetfilename</td><td>filename to which the output layer should be saved</td></tr>
+    <tr><td class="paramname">targetfilename</td><td>filename to which the output layer should be saved </td></tr>
+    <tr><td class="paramname">targetdatatype</td><td>datatype of which the output layer to be saved (use only TYPE_INT,TYPE_BYTE or TYPE_SHORT as of now)</td></tr>
   </table>
   </dd>
 </dl>
@@ -605,7 +610,8 @@ Static Public Attributes</h2></td></tr>
     <tr><td class="paramname">self</td><td>pointer to the Layer object </td></tr>
     <tr><td class="paramname">operation</td><td>any operation which operates on both the raster layers at a respective point/pixel but involving kernel(3x3)[neighbour points]. </td></tr>
     <tr><td class="paramname">layer2</td><td>the layer which forms the second input to the "operation" function. </td></tr>
-    <tr><td class="paramname">targetfilename</td><td>filename to which the output layer should be saved</td></tr>
+    <tr><td class="paramname">targetfilename</td><td>filename to which the output layer should be saved </td></tr>
+    <tr><td class="paramname">targetdatatype</td><td>datatype of which the output layer to be saved (use only TYPE_INT,TYPE_BYTE or TYPE_SHORT as of now)</td></tr>
   </table>
   </dd>
 </dl>
@@ -709,7 +715,7 @@ Static Public Attributes</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Sep 18 2013 16:33:35 for My Project by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Sep 23 2013 14:51:57 for My Project by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.5
 </small></address>

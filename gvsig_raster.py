@@ -398,6 +398,8 @@ class RasterLayer(FLyrRaster):
     # @param self pointer to the Layer object
     # @param filter1 any filter which modifies the raster layer point-by-point
     # @param targetfilename filename to which the output layer should be saved
+    # @param targetdatatype datatype of which the output layer to be saved (use only TYPE_INT,TYPE_BYTE or TYPE_SHORT as of now)
+    # @param targetbandcount number of bands in the output layer
     #
     # @return saves the created layer to "targetfilename" in the current directory
     #
@@ -431,6 +433,8 @@ class RasterLayer(FLyrRaster):
     # @param self pointer to the Layer object
     # @param filter1 any filter which modifies the raster layer using a kernel(3x3).
     # @param targetfilename filename to which the output layer should be saved
+    # @param targetdatatype datatype of which the output layer to be saved (use only TYPE_INT,TYPE_BYTE or TYPE_SHORT as of now)
+    # @param targetbandcount number of bands in the output layer
     #
     # @return saves the created layer to "targetfilename" in the current directory
     #
@@ -479,6 +483,7 @@ class RasterLayer(FLyrRaster):
     # @param operation any operation which operates on both the raster layers at a respective point/pixel.
     # @param layer2 the layer which forms the second input to the "operation" function.
     # @param targetfilename filename to which the output layer should be saved
+    # @param targetdatatype datatype of which the output layer to be saved (use only TYPE_INT,TYPE_BYTE or TYPE_SHORT as of now)
     #
     # @return saves the created layer to "targetfilename" in the current directory
     #
@@ -526,6 +531,7 @@ class RasterLayer(FLyrRaster):
     # @param operation any operation which operates on both the raster layers at a respective point/pixel but involving kernel(3x3)[neighbour points].
     # @param layer2 the layer which forms the second input to the "operation" function.
     # @param targetfilename filename to which the output layer should be saved
+    # @param targetdatatype datatype of which the output layer to be saved (use only TYPE_INT,TYPE_BYTE or TYPE_SHORT as of now)
     #
     # @return saves the created layer to "targetfilename" in the current directory
     #
