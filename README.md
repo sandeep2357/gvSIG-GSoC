@@ -30,4 +30,5 @@ def main():
         layer = loadRasterLayer('path-to-a-raster-file')</pre>
 - Run the script.
 
-<b>Note:</b> If you make any change to gvsig_raster.py file or other files in the lib folder, you need to restart the gvSIG application for the changes to take place.
+<b>Note1:</b> If you make any change to gvsig_raster.py file or other files in the lib folder, you need to restart the gvSIG application for the changes to take place.<br/>
+<b>Note2:</b> The test scripts required to test the code are provided in <b>tests</b> folder. The documentation in HTML format is provided in <b>docs</b> folder.
