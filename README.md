@@ -10,19 +10,28 @@ For more about the project and work progress refer the <a href='https://github.c
 <h3>Using the API</h3>
 <hr/>
 <h4>Requirements</h4>
-To be able to work with this API, one must have:
-- gvSIG Desktop 2.0
-- Scripting Add-on installed in gvSIG 2.0
-- gvsig_raster.py file (provided above)
+                To be able to work with this API, one must have:
+
+  - gvSIG Desktop 2.0
+  
+  - Scripting Add-on installed in gvSIG 2.0
+  
+  - gvsig_raster.py file (provided above)
 
 <h4>SetUp</h4>
+
 - First add Raster libraries to the scripting extension. <a href='https://gvsig.org/web/Members/jjdelcerro/gvsig-scripting-raster/adding-the-raster-libraries-to-the-classpath'>See here </a>for help.
+
 - Place a small patch for gvsig.py. <a href='https://gvsig.org/web/Members/jjdelcerro/gvsig-scripting-raster/notas-2/patch-gvsig.py'>See here</a> on how to patch gvsig.py
+
 - Place the downloaded gvsig_raster.py file in [gvsig-install-folder]/gvSIG/extensiones/org.gvsig.scripting.extension/scripting/lib folder.
 
 <h4>Testing</h4>
+
 - Create a view with any name in gvSIG main workspace.
+
 - Open the scripting composer from the gvSIG Tools menu.
+
 - Create a file named loadingRaster.py and place the following in the file.<br/>
 <pre>from gvsig import *
 from gvsig_raster import *
